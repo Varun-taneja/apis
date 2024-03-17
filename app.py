@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/process', methods=['POST'])
-def process():
+@app.route('/search', methods=['POST'])
+def search():
     # Check if request contains JSON data
     if not request.is_json:
         return jsonify({'error': 'Request must be in JSON format'}), 400
