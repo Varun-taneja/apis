@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+@app.route('/test', methods=['GET'])
+def test():
+    return "Hello This Works", 200
 
 @app.route('/process', methods=['POST'])
 def process():
