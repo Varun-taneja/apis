@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/process', methods=['GET', 'POST'])
+@app.route('/search', methods=['GET', 'POST'])
 def process():
     if request.method == 'GET':
         return 'GET method is running'
