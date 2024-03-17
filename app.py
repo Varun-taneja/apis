@@ -2,11 +2,8 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/process', methods=['POST'])
 def process():
-    if request.method == 'GET':
-        return 'GET method is running'
-
     # Check if request contains JSON data
     if not request.is_json:
         return jsonify({'error': 'Request must be in JSON format'}), 400
@@ -31,6 +28,10 @@ def process():
     no_of_matches = data['noOfMatches']
     input_path = data['inputPath']
 
+    # Check if category is valid
+    if category not in ['resume', 'job']:
+        return jsonify({'status': 'Bad Request', 'message': 'Please check category should be either resume or job!'}), 400
+
     # Mock processing logic
     results = []
 
@@ -40,11 +41,18 @@ def process():
 
     # Process the data
     for i in range(1, no_of_matches + 1):
-        results.append({
-            'id': i,
-            'score': threshold,
-            'path': f'{i}.pdf'
-        })
+        if category == 'resume':
+            results.append({
+                'id': i,
+                'score': threshold,
+                'path': f'{i}.pdf'
+            })
+        elif category == 'job':
+            results.append({
+                'id': i,
+                'score': threshold,
+                'path': f'{i}job.pdf'  # Adjusting the file path for the 'job' category
+            })
 
     # Prepare output JSON
     output = {
@@ -58,5 +66,28 @@ def process():
 
     return jsonify(output), 200
 
+@app.route('/ping', methods=['GET'])
+def ping():
+    response = {
+        "status": "healthy",
+        "dependencies": {
+            "modelAPIS": {
+                "model1": "online",
+                "model2": "offline"
+            },
+            "database": {
+                "connection": "available",
+                "responseTime": "12 ms"
+            },
+            "memory": {
+                "usage": "normal"
+            },
+            "cpu": {
+                "usage": ".5"  # Placeholder value, you can replace this with actual CPU usage data
+            }
+        }
+    }
+    return jsonify(response), 200
+    
 if __name__ == '__main__':
     app.run(debug=True)
