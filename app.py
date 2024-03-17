@@ -2,12 +2,11 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-@app.route('/test', methods=['GET'])
-def test():
-    return "Hello This Works", 200
-
-@app.route('/process', methods=['POST'])
+@app.route('/process', methods=['GET', 'POST'])
 def process():
+    if request.method == 'GET':
+        return 'GET method is running'
+
     # Check if request contains JSON data
     if not request.is_json:
         return jsonify({'error': 'Request must be in JSON format'}), 400
@@ -58,7 +57,6 @@ def process():
     }
 
     return jsonify(output), 200
-
 
 if __name__ == '__main__':
     app.run(debug=True)
