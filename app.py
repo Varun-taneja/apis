@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import logging
+from utils.searchService import *
 
 app = Flask(__name__)
 
@@ -44,6 +45,14 @@ def search():
     # Check if category is valid
     if category not in ['resume', 'job']:
         return jsonify({'status': 'Bad Request', 'message': 'Please check category should be either resume or job!'}), 400
+    
+    localPath = None
+    if category == "job" : localPath = "utils/data/jds"
+    else: localPath = "utils/data/resumes"
+
+    app.logger.info(f'Download Started for {category}')
+    obtain_test_data(category, localPath, input_path)
+    app.logger.info(f'Download Finished for {category}')
 
     # Mock processing logic
     results = []
