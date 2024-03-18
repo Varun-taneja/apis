@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 import logging
-from utils.searchService import *
+from utils.pipeline import runPipelineForJD, runPipelineForResume
+from utils.vectorSearch import getResumeBestMatch, getJDBestMatch
+from utils.pingService import returnHealth
 
 app = Flask(__name__)
 
@@ -36,6 +38,8 @@ def search():
     if not isinstance(threshold, (int, float)) or threshold < 0 or threshold > 1:
         return jsonify({'error': 'Threshold must be a float between 0 and 1'}), 400
 
+    # if no_of_matches <= 0:
+    #     return jsonify({'status': 'success', 'message': 'No results found'}), 200
     # Extract input parameters
     context = data['context']
     category = data['category']
@@ -46,35 +50,30 @@ def search():
     if category not in ['resume', 'job']:
         return jsonify({'status': 'Bad Request', 'message': 'Please check category should be either resume or job!'}), 400
     
-    localPath = None
-    if category == "job" : localPath = "utils/data/jds"
-    else: localPath = "utils/data/resumes"
-
-    app.logger.info(f'Download Started for {category}')
-    obtain_test_data(category, localPath, input_path)
-    app.logger.info(f'Download Finished for {category}')
-
-    # Mock processing logic
-    results = []
-
-    # Check if no results found
-    if no_of_matches <= 0:
-        return jsonify({'status': 'failure', 'message': 'No results found'}), 404
+    results = None
+    if category == "resume":
+        runPipelineForResume(input_path)
+        results = getResumeBestMatch(context, no_of_matches)
+    else:
+        runPipelineForJD(input_path)
+        results = getJDBestMatch(context, no_of_matches)   
+    
+    jsonResult = []
 
     # Process the data
+    j = 1
     for i in range(1, no_of_matches + 1):
-        if category == 'resume':
-            results.append({
-                'id': i,
-                'score': threshold,
-                'path': f'{i}.pdf'
-            })
-        elif category == 'job':
-            results.append({
-                'id': i,
-                'score': threshold,
-                'path': f'{i}job.pdf'  # Adjusting the file path for the 'job' category
-            })
+
+        path = results[i - 1][0]
+        score = float(results[i - 1][1])
+
+        if score >= threshold:
+            jsonResult.append({
+                'id': j,
+                'score': score,
+                'path': f'{path}'
+            }) 
+            j += 1       
 
     # Prepare output JSON
     output = {
@@ -83,7 +82,7 @@ def search():
         'metadata': {
             'confidenceScore': threshold
         },
-        'results': results
+        'results': jsonResult
     }
 
     return jsonify(output), 200
@@ -91,26 +90,7 @@ def search():
 @app.route('/ping', methods=['GET'])
 def ping():
     app.logger.info('ping endpoint accessed: /')
-    response = {
-        "status": "healthy",
-        "dependencies": {
-            "modelAPIS": {
-                "model1": "online",
-                "model2": "offline"
-            },
-            "database": {
-                "connection": "available",
-                "responseTime": "12 ms"
-            },
-            "memory": {
-                "usage": "normal"
-            },
-            "cpu": {
-                "usage": ".5"  # Placeholder value, you can replace this with actual CPU usage data
-            }
-        }
-    }
-    return jsonify(response), 200
+    return jsonify(returnHealth()), 200
     
 if __name__ == '__main__':
     app.run(debug=True)
