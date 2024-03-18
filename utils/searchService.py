@@ -4,7 +4,7 @@ from google.cloud import storage
 from pathlib import Path
 import os
 
-path_to_private_key = 'utils/fifth-compass-415612-76f634511b19.json'  
+path_to_private_key = './fifth-compass-415612-76f634511b19.json'  
 
 def getResumeTestData(inputPath, str_folder_name_on_gcs, localPath, privateKeyPath):
     bucketName = inputPath.split('/')[-1]
