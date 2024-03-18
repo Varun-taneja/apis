@@ -1,10 +1,8 @@
 from google.cloud import storage
 from pathlib import Path
-from google.cloud import storage
-from pathlib import Path
 import os
 
-path_to_private_key = 'utils/fifth-compass-415612-76f634511b19.json'  
+path_to_private_key = 'apis/utils/fifth-compass-415612-76f634511b19.json'  
 
 def getResumeTestData(inputPath, str_folder_name_on_gcs, localPath, privateKeyPath):
     bucketName = inputPath.split('/')[-1]
@@ -49,7 +47,7 @@ def getJDTestData(inputPath, str_folder_name_on_gcs, localPath, privateKeyPath):
 def obtain_test_data(category, localFolder, inputPath):
     if category == "resume":
         Path(localFolder).mkdir(parents=True, exist_ok=True)
-        getResumeTestData(inputPath, "RESUME/data", localFolder, path_to_private_key)
+        getResumeTestData(inputPath, "RESUME/test-data", localFolder, path_to_private_key)
     elif category == "job":
         Path(localFolder).mkdir(parents=True, exist_ok=True)
         getJDTestData(inputPath, "JD/", localFolder, path_to_private_key)
