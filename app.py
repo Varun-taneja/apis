@@ -1,9 +1,22 @@
 from flask import Flask, request, jsonify
+import logging
 
 app = Flask(__name__)
 
+# Configure logging
+def setup_logging():
+    log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(level=logging.INFO, format=log_format)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(log_format))
+    app.logger.addHandler(handler)
+
+# Setup logging when the app starts
+setup_logging()
+
 @app.route('/search', methods=['POST'])
 def search():
+    app.logger.info('search endpoint accessed: /')
     # Check if request contains JSON data
     if not request.is_json:
         return jsonify({'error': 'Request must be in JSON format'}), 400
@@ -68,6 +81,7 @@ def search():
 
 @app.route('/ping', methods=['GET'])
 def ping():
+    app.logger.info('ping endpoint accessed: /')
     response = {
         "status": "healthy",
         "dependencies": {
