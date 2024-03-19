@@ -47,10 +47,18 @@ def getJDTestData(inputPath, str_folder_name_on_gcs, localPath, privateKeyPath):
 def obtain_test_data(category, localFolder, inputPath):
     if category == "resume":
         Path(localFolder).mkdir(parents=True, exist_ok=True)
-        getResumeTestData(inputPath, "RESUME/test-data", localFolder, path_to_private_key)
+        try:
+            getResumeTestData(inputPath, "RESUME/test-data", localFolder, path_to_private_key)
+            getResumeTestData(inputPath, "/", localFolder, path_to_private_key)
+        except:
+            return "Record not found", 400
     elif category == "job":
         Path(localFolder).mkdir(parents=True, exist_ok=True)
-        getJDTestData(inputPath, "JD/", localFolder, path_to_private_key)
+        try:
+            getJDTestData(inputPath, "JD/", localFolder, path_to_private_key)
+            getResumeTestData(inputPath, "/", localFolder, path_to_private_key)
+        except:
+            return "Record not found", 400
     else:
         #return jsonify({"status": "Bad Request Please check category should be either resume or job!"})
         return "Record not found", 400

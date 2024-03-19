@@ -508,14 +508,37 @@ def put_embeddings_on_search_client_jd(mongo_collection,index_name,endpoint,cred
     ppe = generate_embeddings("Preferred past experience : "+ combone_lists(gptResponse["preferred past experience"]))
     mrq = generate_embeddings("Minimum required qualification : "+ combone_lists(gptResponse["minimum required qualification"]))
     result = client_curr_idx.upload_documents({"docName":documentName,"rawJD":raw_text,"summary":summary,"preferredEducationalQualification":peq,"preferredSkills":rs,"preferredPastExperience":ppe,"requiredMinimumQualifications":mrq})
-
+def get_chatgpt_esponse(prompt_begin, context, prompt_specifications):
+    client_azure = AzureOpenAI(
+    azure_endpoint = 'https://sunflower-openai.openai.azure.com/',
+    api_key='f68dfd696b2a4917a892e81276af3941',
+    api_version="2024-02-01"
+    )
+    prompt = prompt_begin + context + prompt_specifications
+    response = client_azure.chat.completions.create(
+    model="sunflower", # model = "deployment_name".
+    temperature=0.54,  # Set temperature parameter
+    max_tokens=2300,
+    top_p=0.25,  # Set top_p parameter
+    messages=[
+      {"role": "user", "content": prompt}
+    ]
+    )
+    try:
+      return json.loads(response.choices[0].message.content)
+    except:
+      try:
+        return fix_json(response.choices[0].message.content)
+      except:
+        return response.choices[0].message.content
 def put_embeddings_on_search_client_resume(mongo_collection,index_name,endpoint,credential):
   client_curr_idx = SearchClient(endpoint=endpoint, index_name=index_name, credential=credential)
   documents = list(mongo_collection.find({}))
+  
   for curr_data in documents:
     documentName = str(curr_data["_id"])
     raw_text = clean_text(curr_data["parsedText"])
-    gptResponse = curr_data["gptResponse"]
+    gptResponse = curr_data["gptResponse"]    
     summary = generate_embeddings(gptResponse["Summary"])
     education = generate_embeddings(combone_lists(gptResponse["Education"]))
     workex = generate_embeddings("Work Experience: "+ combone_lists(gptResponse["Work Experience"]))
@@ -526,7 +549,6 @@ def put_embeddings_on_search_client_resume(mongo_collection,index_name,endpoint,
 CONNECTION_STRING = "mongodb+srv://admin:admin123@sunflowercluster.oppjzec.mongodb.net/"
 
 client_azure =  getAzureClient()
-
 
 tokenizer = tiktoken.get_encoding("cl100k_base")
 

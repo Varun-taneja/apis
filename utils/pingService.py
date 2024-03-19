@@ -84,4 +84,4 @@ def check_system_health():
 def returnHealth():
     result = check_system_health()
     json_string = json.dumps(result, indent=2)
-    print(json_string)
+    return json_string

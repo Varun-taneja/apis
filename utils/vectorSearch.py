@@ -329,7 +329,6 @@ def get_file_name_from_mongo(mongo_collection,doc_id):
 
 def serach_resume_all_embedd(text, top_k):
   gptResponse = get_chatgpt_response(prompt_begin_jd, text ,prompt_specifications_jd)
-
   summary = generate_embeddings(gptResponse["Summary"])
   peq = generate_embeddings(combone_lists(gptResponse["preferred educational qualification"]))
   rs = generate_embeddings("Required skill for this job are : "+ combone_lists(gptResponse["required skills"]))
@@ -350,7 +349,7 @@ def serach_resume_all_embedd(text, top_k):
   )
   return results
 
-def search_resumes(text, top_k,mongo_collection):
+def search_resumes(text, top_k, mongo_collection):
   sentences = sent_tokenize(text)
   if len(sentences)<3:
     search_results = search_resume_text_summary_embedd(text, top_k)
@@ -358,7 +357,12 @@ def search_resumes(text, top_k,mongo_collection):
     search_results = serach_resume_all_embedd(text, top_k)
   results = []
   for result in search_results:
-    results.append((get_file_name_from_mongo(mongo_collection,result['docName']),convert_score_to_cosine(result['@search.score'])))
+    fileName = None
+    try:
+      fileName = get_file_name_from_mongo(mongo_collection, result['docName'])
+    except:
+      continue
+    results.append((fileName,convert_score_to_cosine(result['@search.score'])))
   results.sort(key = lambda x:-x[1])
   return results
 
@@ -402,7 +406,12 @@ def search_jds(text, top_k,mongo_collection):
     search_results = serach_jds_all_embedd(text, top_k)
   results = []
   for result in search_results:
-    results.append((get_file_name_from_mongo(mongo_collection,result['docName']),convert_score_to_cosine(result['@search.score'])))
+    fileName = None
+    try:
+      fileName = get_file_name_from_mongo(mongo_collection, result['docName'])
+    except:
+      continue
+    results.append((fileName,convert_score_to_cosine(result['@search.score'])))
   results.sort(key = lambda x:-x[1])
   return results
 
@@ -434,7 +443,7 @@ def getResumeBestMatch(jdText, numberOfMatches):
     client_mongo = MongoClient(CONNECTION_STRING)
     mongo_database = client_mongo["SunflowerDB"]
     resume_collection = mongo_database["ResumeTest"]
-    results = search_resumes(jdText, 5,resume_collection)
+    results = search_resumes(jdText, numberOfMatches, resume_collection)
     return results
 
 def getJDBestMatch(resumeText, numberOfMatches):
