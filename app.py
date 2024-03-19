@@ -59,13 +59,13 @@ def search():
         results = getJDBestMatch(context, no_of_matches)   
     
     jsonResult = []
-
+    
+    loopLength = min(no_of_matches, len(results))
     # Process the data
     j = 1
-    for i in range(1, no_of_matches + 1):
-
-        path = results[i - 1][0]
-        score = float(results[i - 1][1])
+    for i in range(loopLength):
+        path = results[i][0]
+        score = float(results[i][1])
 
         if score >= threshold:
             jsonResult.append({
